@@ -1,0 +1,50 @@
+# === Node / React (cloud/frontend, pi/frontend) ===
+node_modules/
+dist/
+.vite/
+.env
+.env.local
+.env.*.local
+
+# === Python (pi/backend) ===
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+*.sqlite3
+
+# === .NET (cloud/backend) ===
+bin/
+obj/
+*.user
+*.suo
+.vs/
+appsettings.Development.json
+appsettings.Production.json
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+
+# === Temp / Print files ===
+pi/backend/tmp/
+pi/backend/*.pdf
+pi/backend/*.jpg
+pi/backend/*.png
+pi/backend/*.docx
+
+# === Terraform ===
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/*.tfvars
