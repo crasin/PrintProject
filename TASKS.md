@@ -109,78 +109,67 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 ## Phase 3 — Pi Backend (Python 3 / FastAPI)
 
 ### 3.1 Project Scaffolding
-- [ ] Create `pi/backend/` Python project with `venv`
-- [ ] Add packages: `fastapi`, `uvicorn`, `pycups`, `httpx`, `python-dotenv`, `aiofiles`, `aiosqlite`
-- [ ] Configure environment variables (cloud API URL, store API key, printer names, store ID)
-- [ ] Verify LibreOffice is installed on Pi (`libreoffice --headless` available)
+- [x] Create `pi/backend/` Python project with `venv`
+- [x] Add packages: `fastapi`, `uvicorn`, `pycups`, `httpx`, `python-dotenv`, `aiofiles`, `aiosqlite`
+- [x] Configure environment variables (cloud API URL, store API key, printer names, store ID)
+- [ ] Verify LibreOffice is installed on Pi (`libreoffice --headless` available) *(deploy step)*
 
 ### 3.2 Code Validation & File Download
-- [ ] `POST /local/print` — accept code from kiosk UI
-- [ ] Call cloud `validate-code` API with the entered code
-- [ ] On success: download file from the returned signed S3 URL to local temp dir
-- [ ] Handle errors: invalid code, expired, network failure
+- [x] `POST /local/print` — accept code from kiosk UI
+- [x] Call cloud `validate-code` API with the entered code
+- [x] On success: download file from the returned signed S3 URL to local temp dir
+- [x] Handle errors: invalid code, expired, network failure
 
 ### 3.3 File Conversion (LibreOffice)
-- [ ] After download, check file extension
-- [ ] If DOCX / XLSX / PPTX: run `libreoffice --headless --convert-to pdf <file>` via subprocess
-- [ ] Wait for conversion, verify output PDF exists, handle failure
-- [ ] Use converted PDF path for CUPS submission; delete intermediate files after print
+- [x] After download, check file extension
+- [x] If DOCX / XLSX / PPTX: run `libreoffice --headless --convert-to pdf <file>` via subprocess
+- [x] Wait for conversion, verify output PDF exists, handle failure
+- [x] Use converted PDF path for CUPS submission; delete intermediate files after print
 
 ### 3.4 CUPS Print Queue Integration
-- [ ] Detect printer type from job metadata (`COLOR_PHOTO` or `LASER_DOCUMENT`)
-- [ ] Map printer type to correct CUPS printer name (from config)
-- [ ] Submit job to CUPS via `pycups` with correct options (copies, paper size, color mode)
-- [ ] Monitor CUPS job status and poll until complete/failed
-- [ ] Report final status back to cloud API (`PRINTING` → `DONE` / `FAILED`)
+- [x] Detect printer type from job metadata (`COLOR_PHOTO` or `LASER_DOCUMENT`)
+- [x] Map printer type to correct CUPS printer name (from config)
+- [x] Submit job to CUPS via `pycups` with correct options (copies, paper size, color mode)
+- [x] Monitor CUPS job status and poll until complete/failed
+- [x] Report final status back to cloud API (`PRINTING` → `DONE` / `FAILED`)
 
 ### 3.5 Local Job State
-- [ ] Maintain a lightweight local SQLite DB (via `aiosqlite`) for in-flight jobs
+- [x] Maintain a lightweight local SQLite DB (via `aiosqlite`) for in-flight jobs
   - Survives Pi restarts; prevents re-downloading on reconnect
-- [ ] **Print-and-delete**: immediately remove temp dir (original file + converted PDF) after CUPS job completes or fails
-- [ ] Pi temp dir budget: never accumulates — one job at a time, cleaned on completion
+- [x] **Print-and-delete**: immediately remove temp dir (original file + converted PDF) after CUPS job completes or fails
+- [x] Pi temp dir budget: never accumulates — one job at a time, cleaned on completion
 
 ### 3.6 Heartbeat
-- [ ] Background task: POST to `/api/admin/stores/{id}/heartbeat` every 60s
-- [ ] Include printer status from CUPS (idle / printing / offline) for each configured printer
+- [x] Background task: POST to `/api/admin/stores/{id}/heartbeat` every 60s
+- [x] Include printer status from CUPS (idle / printing / offline) for each configured printer
 
 ### 3.7 System Service
-- [ ] Write `systemd` unit file for pi backend auto-start on boot
-- [ ] Auto-restart on crash policy
+- [x] Write `systemd` unit file for pi backend auto-start on boot
+- [x] Auto-restart on crash policy
 
 ---
 
 ## Phase 4 — Pi Frontend (React + Vite — Kiosk UI)
 
 ### 4.1 Project Scaffolding
-- [ ] `npm create vite@latest` in `pi/frontend/` with React + TypeScript
-- [ ] Tailwind CSS; design for **touch display** (large tap targets, high contrast)
-- [ ] Configure to connect to Pi backend (localhost)
+- [x] Vite + React + TypeScript in `pi/frontend/`
+- [x] Tailwind CSS with fluid `clamp()` sizes; landscape-responsive; min 64px tap targets
+- [x] Framer Motion, react-qr-code; configured to connect to Pi backend via VITE_PI_API_URL
 
-### 4.2 Screens
-- [ ] **Idle / Attract Screen**
-  - Animated QR code for cloud web app URL
-  - "Scan to upload" instruction
-  - "Already have a code? Tap here" button
-  - Rotating store branding / promotional content
-- [ ] **Enter Code Screen**
-  - Large on-screen numpad or alphanumeric keyboard
-  - Code input field with clear visual feedback
-  - Submit / Cancel buttons
-- [ ] **Processing Screen**
-  - "Downloading your file..." with progress indicator
-  - "Sending to printer..." status
-- [ ] **Success Screen**
-  - Confirmation message, estimated wait time
-  - Auto-return to idle after timeout
-- [ ] **Error Screen**
-  - Clear error messages (invalid code / printer offline / network error)
-  - Retry / Return to idle options
+### 4.2 Screens (state machine in App.tsx — no router)
+- [x] **Landing Screen** — `SELF/SECURE/FAST` animated slideshow + "Print Now" button
+- [x] **QR Code Screen** — large QR (VITE_WEBAPP_URL) + "Enter Code" button
+- [x] **Keypad Screen** — A–F + 0–9 custom keypad, 6-char code, shake on invalid
+- [x] **Preview Screen** — file card with name/type/options; polls for READY; confirm to print
+- [x] **Printing Screen** — SVG printer animation, polls for DONE/FAILED
+- [x] **Success Screen** — animated checkmark, auto-return to idle after 30s
+- [x] **Error Screen** — human-readable message, Retry → Keypad / Cancel → Landing
 
 ### 4.3 Kiosk Hardening
-- [ ] Chromium kiosk mode launch script (full-screen, no address bar)
-- [ ] Disable right-click and keyboard shortcuts in app
-- [ ] Auto-refresh / watchdog for frontend process
-- [ ] Write `systemd` unit file for frontend auto-start
+- [ ] Chromium kiosk mode launch script (full-screen, no address bar) *(deploy step)*
+- [x] Text selection and tap highlight disabled in index.html CSS
+- [ ] Auto-refresh / watchdog for frontend process *(deploy step)*
+- [ ] Write `systemd` unit file for frontend auto-start *(deploy step)*
 
 ---
 
@@ -218,7 +207,7 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done
 
 - [ ] SMS/WhatsApp notification to customer with print code (MSG91 / Twilio)
 - [ ] Print job history for customers (optional account / phone-based)
-- [ ] USB walk-up printing (local upload at kiosk)
+- [~~USB walk-up printing — rejected, cloud-only~~]
 - [ ] Printer ink/paper level alerts (CUPS supply levels via `pycups`)
 - [ ] Remote Pi management (Tailscale or reverse SSH tunnel)
 - [ ] Per-store pricing configuration from admin dashboard

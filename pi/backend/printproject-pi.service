@@ -1,0 +1,30 @@
+[Unit]
+Description=PrintProject Pi Backend
+# Wait for network and CUPS before starting
+After=network-online.target cups.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/PrintProject/pi/backend
+
+# Load .env automatically
+EnvironmentFile=/home/pi/PrintProject/pi/backend/.env
+
+# Use the venv interpreter
+ExecStart=/home/pi/PrintProject/pi/backend/venv/bin/uvicorn app.main:app \
+    --host 127.0.0.1 \
+    --port 8001 \
+    --log-level info
+
+# Restart on crash with a short back-off
+Restart=always
+RestartSec=5
+
+# Logging goes to journald — view with: journalctl -u printproject-pi -f
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

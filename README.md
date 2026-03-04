@@ -144,4 +144,4 @@ PrintProject/
 - [x] Max file size: **50 MB per upload** (covers 10 iPhone HD photos @ ~5 MB each; also fits large PDFs and Office docs)
 - [x] S3 file retention TTL: **5 days** (S3 lifecycle rule auto-deletes; files also deleted immediately on successful print)
 - [x] Pi storage: **print-and-delete** — temp files removed immediately after successful CUPS job. Pi only ever holds one in-flight job at a time.
-- [ ] USB walk-up printing? *(deferred — cloud-only for MVP)*
+- [x] USB walk-up printing? **No — cloud upload only**
