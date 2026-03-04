@@ -39,7 +39,7 @@ on-site by entering a one-time code at the kiosk.
 2. Customer scans the **QR code** on the kiosk screen or visits the web app directly
 3. On the **Cloud Web App**:
    - Selects file type (document / photo)
-   - Uploads file(s) — PDF, DOCX, JPG, PNG
+   - Uploads file(s) — PDF, DOCX, XLSX, PPTX, JPG, PNG
    - Selects print options (color/BW, copies, paper size)
    - Makes payment via Razorpay
    - Receives a **one-time print code** (e.g. `A4K9-2X`)
@@ -65,6 +65,7 @@ on-site by entering a one-time code at the kiosk.
 | Pi Frontend        | React (Vite)        | Runs in Chromium kiosk mode on touch display        |
 | Pi Backend         | Python 3 (FastAPI)  | Native Pi ecosystem, `pycups` for CUPS integration  |
 | Print System       | CUPS (on Pi)        | Already tested and working                          |
+| File Conversion    | LibreOffice headless (on Pi) | Convert DOCX/XLSX/PPTX → PDF before CUPS |
 | Hosting            | AWS (EC2 / ECS)     | Cloud backend and frontend hosting                  |
 
 ---
@@ -104,21 +105,40 @@ PrintProject/
 
 ## Key Design Decisions
 
-- **One-time codes** expire after first use or after a configurable TTL (e.g. 30 min).
+- **One-time codes** are alphanumeric (e.g. `A4K9-2X`), expire after first use or after a configurable TTL (e.g. 30 min).
 - **Files are deleted from S3** after successful print (or after TTL) for privacy.
 - **Pi operates offline-tolerant** — once a file is downloaded, printing continues even if
   cloud connectivity drops momentarily.
 - **Pi backend runs as a systemd service** — auto-starts on boot, restarts on crash.
 - **Kiosk frontend runs in Chromium kiosk mode** — full-screen, no browser chrome.
+- **File conversion on Pi** — XLSX, PPTX, DOCX are converted to PDF locally on the Pi
+  using LibreOffice headless before being sent to CUPS. S3 stores the original file.
+- **Multi-store from day one** — every entity (job, payment, store) is scoped to a `store_id`.
+  Each Pi authenticates with a per-store API key. Admin dashboard shows per-store revenue/queue.
+- **Admin dashboard is MVP** — cloud frontend includes a protected `/admin` section with
+  live job queue, revenue by store, and printer health status.
 
 ---
 
-## Open Questions (to resolve before implementation)
+## Supported File Types
 
-- [ ] File types to support: PDF, DOCX, JPG, PNG — any others (e.g. XLSX)?
-- [ ] Max file size per upload?
-- [ ] How long should uploaded files remain on S3 before auto-delete?
-- [ ] Should the kiosk also support walk-up USB or only cloud uploads?
-- [ ] Multi-store support needed now or a future phase?
-- [ ] Admin dashboard needed (view jobs, revenue, printer status)?
-- [ ] Should print codes be numeric-only (easier to type on touch) or alphanumeric?
+| Format | Extension | Conversion needed |
+|--------|-----------|-------------------|
+| PDF    | .pdf      | None — sent directly to CUPS |
+| Word   | .docx     | LibreOffice → PDF on Pi |
+| Excel  | .xlsx     | LibreOffice → PDF on Pi |
+| PowerPoint | .pptx / .ppt | LibreOffice → PDF on Pi |
+| JPEG   | .jpg / .jpeg | None — sent directly to CUPS |
+| PNG    | .png      | None — sent directly to CUPS |
+
+---
+
+## Open Questions (resolved)
+
+- [x] File types: PDF, DOCX, XLSX, PPTX, JPG, PNG
+- [x] Code format: alphanumeric (e.g. `A4K9-2X`)
+- [x] Multi-store: yes, from day one
+- [x] Admin dashboard: yes, MVP scope
+- [ ] Max file size per upload? *(still to decide)*
+- [ ] S3 file retention TTL? *(still to decide)*
+- [ ] USB walk-up printing? *(deferred — cloud-only for MVP)*
